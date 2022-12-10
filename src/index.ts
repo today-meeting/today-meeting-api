@@ -8,7 +8,7 @@ const PORT = 3000;
 const oauth2Client = new google.auth.OAuth2(
   '955515081262-hivfh47m590jrrvd8itdms3gdopf98m6.apps.googleusercontent.com',
   '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',
-  'localhost:3000',
+  'http://ec2-35-78-83-135.ap-northeast-1.compute.amazonaws.com:3000/oauth2callback',
 );
 
 // Access scopes for read-only Drive activity.
@@ -25,7 +25,18 @@ const authorizationUrl = oauth2Client.generateAuthUrl({
   include_granted_scopes: true,
 });
 
+/* Global variable that stores user credential in this code example.
+ * ACTION ITEM for developers:
+ *   Store user's refresh token in your data store if
+ *   incorporating this code into your real app.
+ *   For more information on handling refresh tokens,
+ *   see https://github.com/googleapis/google-api-nodejs-client#handling-refresh-tokens
+ */
+let userCredential = null;
+
 app.get('/', (req: Request, res: Response) => {
+  console.log('/');
+
   res.send(`<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -33,14 +44,14 @@ app.get('/', (req: Request, res: Response) => {
       <title>CLIENT</title>
     </head>
     <body>
-      <a href="http://localhost:3000/login">login</a>
+      <a href="http://35.78.83.135:3000/login">login</a>
     </body>
   </html>`);
 });
 
 app.get('/login', (req, res) => {
-  res.writeHead(301, { Location: authorizationUrl });
-  res.redirect(authorizationUrl);
+  res.writeHead(301, { Location: authorizationUrl }).end();
+  // res.redirect(authorizationUrl);
 });
 
 app.get('/oauth2callback', async (req, res) => {
@@ -53,12 +64,69 @@ app.get('/oauth2callback', async (req, res) => {
   oauth2Client.setCredentials(tokens);
 
   console.log({ tokens });
+
+  // Example of using Google Drive API to list filenames in user's Drive.
+  // const drive = google.drive('v3');
+
+  // drive.files.list(
+  //   {
+  //     auth: oauth2Client,
+  //     pageSize: 10,
+  //     fields: 'nextPageToken, files(id, name)',
+  //   },
+  //   (err1, res1) => {
+  //     if (err1) return console.log('The API returned an error: ' + err1);
+  //     const files = res1.data.files;
+
+  //     if (files.length) {
+  //       console.log('Files:');
+  //       files.map((file) => {
+  //         console.log(`${file.name} (${file.id})`);
+  //       });
+  //     } else {
+  //       console.log('No files found.');
+  //     }
+
+  //   },
+  // );
+
+  res.send(200);
 });
 
 app.get('/revoke', (req, res) => {
   console.log('revoke');
+  // // Build the string for the POST request
+  // let postData = 'token=' + userCredential?.access_token;
 
-  return 200;
+  // // Options for POST request to Google's OAuth 2.0 server to revoke a token
+  // let postOptions = {
+  //   host: 'oauth2.googleapis.com',
+  //   port: '443',
+  //   path: '/revoke',
+  //   method: 'POST',
+  //   headers: {
+  //     'Content-Type': 'application/x-www-form-urlencoded',
+  //     'Content-Length': Buffer.byteLength(postData),
+  //   },
+  // };
+
+  // // Set up the request
+  // const postReq = https.request(postOptions, function (res) {
+  //   res.setEncoding('utf8');
+  //   res.on('data', (d) => {
+  //     console.log('Response: ' + d);
+  //   });
+  // });
+
+  // postReq.on('error', (error: any) => {
+  //   console.log(error);
+  // });
+
+  // // Post the request with data
+  // postReq.write(postData);
+  // postReq.end();
+
+  res.send(200);
 });
 
 app.listen(PORT, () => {
